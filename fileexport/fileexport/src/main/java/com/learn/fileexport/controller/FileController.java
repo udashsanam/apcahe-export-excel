@@ -38,14 +38,15 @@ public class FileController {
             // creating hash map to store the data from Excel file
 
             int i = 0 ;
-
+        // first reading row
             for (Row row :
                     sheet) {
                 data.put(i, new ArrayList<>());
+                // readin all the cell values
                 for (Cell cell :
                         row) {
-
                     // get cell type will get the
+
                     switch (cell.getCellType()){
                         case STRING:
                             // adding all the content of the row in index
