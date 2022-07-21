@@ -5,15 +5,14 @@ import com.learn.fileexport.model.StudentEntity;
 import com.learn.fileexport.repository.StudentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -110,4 +109,91 @@ public class FileController {
 
         return data;
     }
+
+
+    @GetMapping()
+
+    public void getCsvFile(HttpServletResponse httpServletResponse) throws IOException {
+            // creating workbook object
+            Workbook workbook = new XSSFWorkbook();
+            // creating xscl with name students
+            Sheet sheet = workbook.createSheet("students");
+            // setting the size of the column
+//            sheet.setColumnWidth(0, 6000);
+//            sheet.setColumnWidth(1, 4000);
+
+        sheet.autoSizeColumn(0);
+        sheet.autoSizeColumn(1);
+        sheet.autoSizeColumn(2);
+
+            // Row for header field
+        Row headerRow = sheet.createRow(0);
+
+        // creating cell style for the header
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+
+        // creating cells for header/ title column
+        // cell number 1 contents title 1
+        Cell headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("Name");
+        headerCell.setCellStyle(headerStyle);
+
+        // cell no 2 contains address
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("Address");
+        headerCell.setCellStyle(headerStyle);
+
+        // cell not 0 centaind tile Id
+        headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("Id");
+        headerCell.setCellStyle(headerStyle);
+
+        // reading data from database
+
+        List<StudentEntity> studentEntities = studentRepository.findAll();
+
+        int i = 1;
+        for (StudentEntity studentEntity :
+                studentEntities) {
+
+            // generating i th row
+            Row row = sheet.createRow(i);
+
+            // adding value in cell number 0 of generated cell
+            Cell cell = row.createCell(0);
+            cell.setCellValue(studentEntity.getId());
+
+            // generating cell 1 and adding values
+            cell = row.createCell(1);
+            cell.setCellValue(studentEntity.getName());
+
+            // generating cell not 2 and adding value
+            cell = row.createCell(2);
+            cell.setCellValue(studentEntity.getAddress());
+
+            i++;
+
+
+
+        }
+
+        // creating output stream to write the file
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        workbook.write(byteArrayOutputStream);
+        workbook.close();
+
+        // creating inputstream for user for file to save
+        ByteArrayInputStream byteArrayInputStream =   new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        // creating response for save the the excel
+        httpServletResponse.setContentType("application/octet-stream");
+        httpServletResponse.setHeader("Content-Disposition", "attachment; filename="+ "hello" + ".xlsx");
+        IOUtils.copy(byteArrayInputStream, httpServletResponse.getOutputStream());
+
+    }
+
+
 }
+
