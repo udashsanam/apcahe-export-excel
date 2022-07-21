@@ -1,10 +1,7 @@
 package com.learn.fileexport.controller;
 
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +18,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/file")
 public class FileController {
+
+
+
 
 
 
@@ -41,8 +41,10 @@ public class FileController {
         // first reading row
             for (Row row :
                     sheet) {
+                // adding empty array list in date with index i
+
                 data.put(i, new ArrayList<>());
-                // readin all the cell values
+                // reading  all the cell values
                 for (Cell cell :
                         row) {
                     // get cell type will get the
@@ -52,6 +54,29 @@ public class FileController {
                             // adding all the content of the row in index
                             data.get(new Integer(i)).add(cell.getRichStringCellValue().getString());
                             break;
+                        case NUMERIC:
+                            // if the cell contents numeric value
+                            // numeric value can be  of two type date of numberi
+                            if(DateUtil.isCellDateFormatted(cell)){
+                                // reading date formate
+                                data.get(new Integer(i)).add(cell.getDateCellValue() + "");
+                            } else {
+                                // reading numeric value
+                                data.get(new Integer(i)).add(cell.getNumericCellValue() + "");
+                            }
+
+
+                            break;
+                        case BOOLEAN:
+                            // if the cell contents boolean value
+                            data.get(new Integer(i)).add(cell.getBooleanCellValue() + "");
+                            break;
+                        case FORMULA:
+                            // if the cell contents formula
+
+                            data.get(new Integer(i)).add(cell.getCellFormula()+ "");
+
+                            break;
                     }
                     
                 }
@@ -60,6 +85,8 @@ public class FileController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+
 
         return data;
     }
